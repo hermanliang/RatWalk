@@ -83,6 +83,10 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Lib\Emgu.CV.dll" />
+    <Content Include="Lib\Emgu.CV.xml" />
+    <Content Include="Lib\Emgu.Util.dll" />
+    <Content Include="Lib\Emgu.Util.xml" />
     <Content Include="opencv_core231.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
