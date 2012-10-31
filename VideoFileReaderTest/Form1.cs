@@ -25,6 +25,7 @@ namespace VideoFileReaderTest
             FPS,
             currentFrame;
 
+        private Image<Gray, byte> bgImage;
 
         public Form1()
         {
@@ -37,7 +38,12 @@ namespace VideoFileReaderTest
             if (ofd.ShowDialog() == DialogResult.OK)
             {
                 _capture = new Capture(ofd.FileName);
-                pictureBox1.Image = _capture.QueryFrame().ToBitmap();
+
+                Image<Bgr, byte> frame = _capture.QueryFrame();
+                pictureBox1.Image = frame.ToBitmap();
+
+                bgImage = preProcessImage(frame);
+
                 totalFrames = _capture.GetCaptureProperty(CAP_PROP.CV_CAP_PROP_FRAME_COUNT);
                 FPS = _capture.GetCaptureProperty(CAP_PROP.CV_CAP_PROP_FPS);
                 currentFrame = _capture.GetCaptureProperty(CAP_PROP.CV_CAP_PROP_POS_FRAMES);
@@ -56,44 +62,56 @@ namespace VideoFileReaderTest
                 currentFrame = _capture.GetCaptureProperty(CAP_PROP.CV_CAP_PROP_POS_FRAMES);
                 trackBar3.Value = (int)currentFrame;
                 Console.WriteLine("fn: " + currentFrame);
-                Image<Gray, byte> gImage = frame.Convert<Gray, byte>();
-                gImage = gImage.ConvertScale<byte>(0.25, 0);
-                //Image<Gray, byte> gImage2 = gImage.Clone();
-                //gImage2 = gImage2.SmoothBlur((int)para2, (int)para2);
-                //gImage2 = gImage2.Not();
-                //gImage = gImage.AddWeighted(gImage2, 1, 0.5, 0);
-                //gImage._EqualizeHist();
-                gImage = gImage.ThresholdBinary(new Gray(para1), new Gray(255));
-                
-                //gImage = gImage.ThresholdAdaptive(
-                //    new Gray(255),
-                //    Emgu.CV.CvEnum.ADAPTIVE_THRESHOLD_TYPE.CV_ADAPTIVE_THRESH_MEAN_C,
-                //    Emgu.CV.CvEnum.THRESH.CV_THRESH_BINARY,
-                //    para1,
-                //    new Gray(para2)
-                //);
-                gImage = gImage.MorphologyEx(
-                    new StructuringElementEx(
-                        3,
-                        (int)para2,
-                        1,
-                        (int)para2 / 2,
-                        Emgu.CV.CvEnum.CV_ELEMENT_SHAPE.CV_SHAPE_ELLIPSE),
-                    Emgu.CV.CvEnum.CV_MORPH_OP.CV_MOP_OPEN,
-                    1);
+                Image<Gray, byte> gImage = preProcessImage(frame);
+                gImage = gImage.Sub(bgImage);
 
                 pictureBox1.Image = gImage.ToBitmap();
                 //pictureBox1.Image = frame.ToBitmap();
             }
             else
             {
+                _capture.SetCaptureProperty(CAP_PROP.CV_CAP_PROP_POS_FRAMES, 0);
+                frame = _capture.QueryFrame();
+                pictureBox1.Image = frame.ToBitmap();
+                currentFrame = 0;
+                trackBar3.Value = 0;
                 mTimer.Stop();
             }
         }
 
+        private Image<Gray, byte> preProcessImage(Image<Bgr, byte> frame)
+        {
+            Image<Gray, byte> gImage = frame.Convert<Gray, byte>();
+            gImage = gImage.ConvertScale<byte>(0.25, 0);
+            //Image<Gray, byte> gImage2 = gImage.Clone();
+            //gImage2 = gImage2.SmoothBlur((int)para2, (int)para2);
+            //gImage2 = gImage2.Not();
+            //gImage = gImage.AddWeighted(gImage2, 1, 0.5, 0);
+            //gImage._EqualizeHist();
+            gImage = gImage.ThresholdBinary(new Gray(para1), new Gray(255));
+
+            //gImage = gImage.ThresholdAdaptive(
+            //    new Gray(255),
+            //    Emgu.CV.CvEnum.ADAPTIVE_THRESHOLD_TYPE.CV_ADAPTIVE_THRESH_MEAN_C,
+            //    Emgu.CV.CvEnum.THRESH.CV_THRESH_BINARY,
+            //    para1,
+            //    new Gray(para2)
+            //);
+            gImage = gImage.MorphologyEx(
+                new StructuringElementEx(
+                    3,
+                    (int)para2,
+                    1,
+                    (int)para2 / 2,
+                    Emgu.CV.CvEnum.CV_ELEMENT_SHAPE.CV_SHAPE_ELLIPSE),
+                Emgu.CV.CvEnum.CV_MORPH_OP.CV_MOP_OPEN,
+                1);
+            return gImage;
+        }
+
         private void trackBar1_Scroll(object sender, EventArgs e)
         {
-            para1 = ((TrackBar)sender).Value * 2 + 1;
+            para1 = ((TrackBar)sender).Value;
         }
 
         private void trackBar2_Scroll(object sender, EventArgs e)
