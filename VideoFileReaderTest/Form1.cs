@@ -54,6 +54,7 @@ namespace VideoFileReaderTest
             if (frame != null)
             {
                 currentFrame = _capture.GetCaptureProperty(CAP_PROP.CV_CAP_PROP_POS_FRAMES);
+                trackBar3.Value = (int)currentFrame;
                 Console.WriteLine("fn: " + currentFrame);
                 Image<Gray, byte> gImage = frame.Convert<Gray, byte>();
                 gImage = gImage.ConvertScale<byte>(0.25, 0);
