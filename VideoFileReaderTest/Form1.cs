@@ -17,8 +17,8 @@ namespace VideoFileReaderTest
     {
         private Capture _capture;
         private Timer mTimer;
-        private int para1 = 3;
-        private double para2 = 1;
+        private int para1 = 57;
+        private double para2 = 17;
 
         private double
             totalFrames,
@@ -65,13 +65,33 @@ namespace VideoFileReaderTest
             if (frame != null)
             {
                 currentFrame = _capture.GetCaptureProperty(CAP_PROP.CV_CAP_PROP_POS_FRAMES);
+                if ((int)currentFrame % 5 != 0)
+                    return;
                 trackBar3.Value = (int)currentFrame;
                 Console.WriteLine("fn: " + currentFrame);
-                Image<Gray, byte> gImage = preProcessImage(frame);
-                gImage = gImage.Sub(bgImage);
 
-                pictureBox1.Image = gImage.ToBitmap();
-                //pictureBox1.Image = frame.ToBitmap();
+                Image<Gray, byte> gImage = getRatContour(frame);
+                //pictureBox1.Image = gImage.ToBitmap();
+
+                Image<Gray, byte> cImage = getRedCircle(frame);
+                foreach (Rectangle rect in redCircles)
+                {
+                    Rectangle bigRect = new Rectangle(
+                        rect.Left - rect.Width,
+                        rect.Top - rect.Height,
+                        rect.Width * 3,
+                        rect.Height * 3);
+                    frame.Draw(bigRect, new Bgr(255, 0, 255), 2);
+                }
+
+                foreach (Rectangle rect in ratRect)
+                {
+                    frame.Draw(rect, new Bgr(0, 255, 255), 2);
+                }
+
+                //pictureBox1.Image = cImage.ToBitmap();
+
+                pictureBox1.Image = frame.ToBitmap();
             }
             else
             {
@@ -81,6 +101,45 @@ namespace VideoFileReaderTest
                 currentFrame = 0;
                 trackBar3.Value = 0;
                 mTimer.Stop();
+            }
+        }
+
+        private Image<Gray, byte> getRatContour(Image<Bgr, byte> frame)
+        {
+            Image<Gray, byte> gImage = preProcessImage(frame);
+            gImage = gImage.Sub(bgImage);
+            return gImage;
+        }
+
+        private List<Rectangle> redCircles = new List<Rectangle>();
+
+        private Image<Gray, byte> getRedCircle(Image<Bgr, byte> frame)
+        {
+            Image<Hsv, byte> hsvImage = frame.Convert<Hsv, byte>();
+            Image<Gray, byte>[] channels = hsvImage.Split();
+            Image<Gray, byte> HueImage = channels[0].InRange(new Gray(170), new Gray(180));
+            Image<Gray, byte> SatImage = channels[1].InRange(new Gray(70), new Gray(120));
+            Image<Gray, byte> ValueImage = channels[2].InRange(new Gray(200), new Gray(255));
+            Image<Gray, byte> cImage = HueImage.And(ValueImage);
+            cImage = cImage.And(SatImage);
+
+            cImage = cImage.Dilate(4);
+            cImage = cImage.Erode(5);
+
+            Contour<Point> contours = cImage.FindContours();
+
+            findRedPosition(contours);
+            
+            
+            return cImage;
+        }
+
+        private void findRedPosition(Contour<Point> contours)
+        {
+            redCircles.Clear();
+            for (; contours != null; contours = contours.HNext)
+            {
+                redCircles.Add(contours.BoundingRectangle);
             }
         }
 
@@ -111,7 +170,25 @@ namespace VideoFileReaderTest
                     Emgu.CV.CvEnum.CV_ELEMENT_SHAPE.CV_SHAPE_ELLIPSE),
                 Emgu.CV.CvEnum.CV_MORPH_OP.CV_MOP_OPEN,
                 1);
+
+            Contour<Point> contours = gImage.FindContours();
+            findRatContour(contours);
+
             return gImage;
+        }
+
+        List<Rectangle> ratRect = new List<Rectangle>();
+
+        private void findRatContour(Contour<Point> contours)
+        {
+            ratRect.Clear();
+            for (; contours != null; contours = contours.HNext)
+            {
+                if (contours.Area > 10000)
+                {
+                    ratRect.Add(contours.BoundingRectangle);
+                }
+            }
         }
 
         private void trackBar1_Scroll(object sender, EventArgs e)
@@ -153,6 +230,11 @@ namespace VideoFileReaderTest
             currentFrame = (double)trackBar3.Value;
             _capture.SetCaptureProperty(CAP_PROP.CV_CAP_PROP_POS_FRAMES, currentFrame);
             pictureBox1.Image = _capture.QueryFrame().ToBitmap();
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            mTimer.Stop();
         }
     }
 }
