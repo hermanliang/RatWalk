@@ -70,7 +70,7 @@
             this.trackBar1.Maximum = 128;
             this.trackBar1.Minimum = 1;
             this.trackBar1.Name = "trackBar1";
-            this.trackBar1.Size = new System.Drawing.Size(568, 45);
+            this.trackBar1.Size = new System.Drawing.Size(568, 42);
             this.trackBar1.TabIndex = 2;
             this.trackBar1.Value = 1;
             this.trackBar1.Scroll += new System.EventHandler(this.trackBar1_Scroll);
@@ -80,24 +80,27 @@
             this.trackBar2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
             this.trackBar2.Location = new System.Drawing.Point(12, 492);
-            this.trackBar2.Maximum = 500;
+            this.trackBar2.Maximum = 31;
             this.trackBar2.Minimum = 1;
             this.trackBar2.Name = "trackBar2";
-            this.trackBar2.Size = new System.Drawing.Size(568, 45);
+            this.trackBar2.Size = new System.Drawing.Size(568, 42);
             this.trackBar2.TabIndex = 3;
             this.trackBar2.Value = 1;
             this.trackBar2.Scroll += new System.EventHandler(this.trackBar2_Scroll);
             // 
             // trackBar3
             // 
+            this.trackBar3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
             this.trackBar3.Location = new System.Drawing.Point(93, 379);
             this.trackBar3.Name = "trackBar3";
-            this.trackBar3.Size = new System.Drawing.Size(488, 45);
+            this.trackBar3.Size = new System.Drawing.Size(488, 42);
             this.trackBar3.TabIndex = 4;
             this.trackBar3.Scroll += new System.EventHandler(this.trackBar3_Scroll);
             // 
             // button2
             // 
+            this.button2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.button2.Location = new System.Drawing.Point(13, 380);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(74, 23);

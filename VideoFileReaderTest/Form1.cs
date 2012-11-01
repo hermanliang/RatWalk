@@ -39,10 +39,7 @@ namespace VideoFileReaderTest
             {
                 _capture = new Capture(ofd.FileName);
 
-                Image<Bgr, byte> frame = _capture.QueryFrame();
-                pictureBox1.Image = frame.ToBitmap();
-
-                bgImage = preProcessImage(frame);
+                getBackgroundImage();
 
                 totalFrames = _capture.GetCaptureProperty(CAP_PROP.CV_CAP_PROP_FRAME_COUNT);
                 FPS = _capture.GetCaptureProperty(CAP_PROP.CV_CAP_PROP_FPS);
@@ -52,6 +49,14 @@ namespace VideoFileReaderTest
                 trackBar3.Minimum = 0;
 
             }
+        }
+
+        private void getBackgroundImage()
+        {
+            Image<Bgr, byte> frame = _capture.QueryFrame();
+            pictureBox1.Image = frame.ToBitmap();
+
+            bgImage = preProcessImage(frame);
         }
 
         private void timer_Tick(object sender, EventArgs e)
@@ -111,7 +116,20 @@ namespace VideoFileReaderTest
 
         private void trackBar1_Scroll(object sender, EventArgs e)
         {
+            bool isAlive = false;
+            if (mTimer != null && mTimer.Enabled)
+            {
+                isAlive = true;
+                mTimer.Stop();
+            }
             para1 = ((TrackBar)sender).Value;
+            _capture.SetCaptureProperty(CAP_PROP.CV_CAP_PROP_POS_FRAMES, 0);
+            getBackgroundImage();
+            _capture.SetCaptureProperty(CAP_PROP.CV_CAP_PROP_POS_FRAMES, currentFrame);
+            if (isAlive)
+            {
+                mTimer.Start();
+            }
         }
 
         private void trackBar2_Scroll(object sender, EventArgs e)
