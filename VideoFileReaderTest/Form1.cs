@@ -71,9 +71,11 @@ namespace VideoFileReaderTest
                 Console.WriteLine("fn: " + currentFrame);
 
                 Image<Gray, byte> gImage = getRatContour(frame);
-                //pictureBox1.Image = gImage.ToBitmap();
+                pictureBox2.Image = gImage.ToBitmap();
 
                 Image<Gray, byte> cImage = getRedCircle(frame);
+                pictureBox3.Image = cImage.ToBitmap();
+
                 foreach (Rectangle rect in redCircles)
                 {
                     Rectangle bigRect = new Rectangle(
@@ -88,8 +90,6 @@ namespace VideoFileReaderTest
                 {
                     frame.Draw(rect, new Bgr(0, 255, 255), 2);
                 }
-
-                //pictureBox1.Image = cImage.ToBitmap();
 
                 pictureBox1.Image = frame.ToBitmap();
             }
@@ -235,6 +235,17 @@ namespace VideoFileReaderTest
         private void button3_Click(object sender, EventArgs e)
         {
             mTimer.Stop();
+        }
+
+        private void Form1_SizeChanged(object sender, EventArgs e)
+        {
+            int winWidth = this.Width;
+            int picBoxWidth = (winWidth - 30) / 2;
+            pictureBox2.Width = picBoxWidth;
+            pictureBox3.Width = picBoxWidth;
+            pictureBox3.Left = 12;
+            pictureBox2.Left = 17 + picBoxWidth;
+
         }
     }
 }
