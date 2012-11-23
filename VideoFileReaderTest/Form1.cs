@@ -20,9 +20,18 @@ namespace VideoFileReaderTest
         private Capture _capture;
         private FTimer mTimer;
         private int para1 = 57;
-        private double para2 = 17;
+        private double para2 = 3;
         private List<Rectangle> ratRect = new List<Rectangle>();
         private List<Rectangle> redCircles = new List<Rectangle>();
+        private int lastLocation = 0;
+        private double lastFrame = 0;
+        public enum DIRECTION
+        {
+            UNKNOWN,
+            LEFT2RIGHT,
+            RIGHT2LEFT,
+        };
+        private DIRECTION walkDir = DIRECTION.UNKNOWN;
 
         private double
             totalFrames,
@@ -39,15 +48,10 @@ namespace VideoFileReaderTest
 
         #region Private Static Methods
 
-        private static Image<Gray, byte> getBackgroundImage(
-            Capture _capture,
-            int para1,
-            int para2)
+        private static Image<Gray, byte> getBackgroundImage(Capture _capture)
         {
             Image<Bgr, byte> frame = _capture.QueryFrame();
-            //pictureBox1.Image = frame.ToBitmap();
-            List<Rectangle> ratRect;
-            return preProcessImage(frame,para1,para2, out ratRect);
+            return frame.Convert<Gray, byte>();
         }
 
         private static Image<Gray, byte> getRatContour(
@@ -57,8 +61,11 @@ namespace VideoFileReaderTest
             int para2,
             out List<Rectangle> ratRect)
         {
-            Image<Gray, byte> gImage = preProcessImage(frame, para1, para2, out ratRect);
+            ratRect = new List<Rectangle>();
+            Image<Gray, byte> gImage = frame.Convert<Gray, byte>();
             gImage = gImage.Sub(bgImage);
+            gImage = preProcessImage(gImage, para1, para2);
+            ratRect = findContourRects(gImage, 10000);
             return gImage;
         }
 
@@ -71,45 +78,36 @@ namespace VideoFileReaderTest
             Image<Gray, byte>[] channels = hsvImage.Split();
             Image<Gray, byte> HueImage = channels[0].InRange(new Gray(170), new Gray(180));
             Image<Gray, byte> SatImage = channels[1].InRange(new Gray(70), new Gray(120));
-            Image<Gray, byte> ValueImage = channels[2].InRange(new Gray(200), new Gray(255));
-            Image<Gray, byte> cImage = HueImage.And(ValueImage);
+            Image<Gray, byte> ValueImage = channels[2].InRange(new Gray(128), new Gray(255));
+            Image<Gray, byte> cImage;
+            //cImage = HueImage;
+            cImage = HueImage.And(ValueImage);
             cImage = cImage.And(SatImage);
 
-            cImage = cImage.Dilate(4);
-            cImage = cImage.Erode(5);
-
-            Contour<Point> contours = cImage.FindContours();
-
-            redCircles = findRedPosition(contours);
+            cImage = cImage.Erode(1);
+            cImage = cImage.Dilate(10);
             
+            redCircles = findContourRects(cImage, 0);
+
             return cImage;
         }
 
-        private static List<Rectangle> findRedPosition(Contour<Point> contours)
-        {
-            List<Rectangle> redCircles = new List<Rectangle>();
-            for (; contours != null; contours = contours.HNext)
-            {
-                redCircles.Add(contours.BoundingRectangle);
-            }
-            return redCircles;
-        }
-
         private static Image<Gray, byte> preProcessImage(
-            Image<Bgr, byte> frame,
+            Image<Gray, byte> gImage,
             int para1,
-            int para2,
-            out List<Rectangle> ratRect)
-        {
-            ratRect = new List<Rectangle>();
-            Image<Gray, byte> gImage = frame.Convert<Gray, byte>();
-            gImage = gImage.ConvertScale<byte>(0.25, 0);
+            int para2)
+        {   
+            //Image<Gray, byte> gImage = frame.Convert<Gray, byte>();
+            //gImage = gImage.ConvertScale<byte>(0.25, 0);
             //Image<Gray, byte> gImage2 = gImage.Clone();
             //gImage2 = gImage2.SmoothBlur((int)para2, (int)para2);
             //gImage2 = gImage2.Not();
             //gImage = gImage.AddWeighted(gImage2, 1, 0.5, 0);
             //gImage._EqualizeHist();
+            gImage = gImage.Resize(0.25, INTER.CV_INTER_NN);
+            gImage = gImage.SmoothBlur(11, 11);
             gImage = gImage.ThresholdBinary(new Gray(para1), new Gray(255));
+
 
             //gImage = gImage.ThresholdAdaptive(
             //    new Gray(255),
@@ -118,6 +116,7 @@ namespace VideoFileReaderTest
             //    para1,
             //    new Gray(para2)
             //);
+
             gImage = gImage.MorphologyEx(
                 new StructuringElementEx(
                     3,
@@ -125,21 +124,27 @@ namespace VideoFileReaderTest
                     1,
                     (int)para2 / 2,
                     Emgu.CV.CvEnum.CV_ELEMENT_SHAPE.CV_SHAPE_ELLIPSE),
-                Emgu.CV.CvEnum.CV_MORPH_OP.CV_MOP_OPEN,
-                1);
+                    Emgu.CV.CvEnum.CV_MORPH_OP.CV_MOP_OPEN,
+                    1);
 
-            Contour<Point> contours = gImage.FindContours();
-            ratRect = findRatContour(contours);
-
+            gImage = gImage.Resize(4, INTER.CV_INTER_NN);
             return gImage;
         }
 
-        private static List<Rectangle> findRatContour(Contour<Point> contours)
+        private static List<Rectangle> findContourRects(Image<Gray, byte> gImage, int minArea)
+        {
+            List<Rectangle> ratRect = new List<Rectangle>();
+            Contour<Point> contours = gImage.FindContours();
+            ratRect = findContours(contours, minArea);
+            return ratRect;
+        }
+
+        private static List<Rectangle> findContours(Contour<Point> contours, int minArea)
         {
             List<Rectangle> ratRect = new List<Rectangle>();
             for (; contours != null; contours = contours.HNext)
             {
-                if (contours.Area > 10000)
+                if (contours.Area > minArea)
                 {
                     ratRect.Add(contours.BoundingRectangle);
                 }
@@ -180,12 +185,57 @@ namespace VideoFileReaderTest
                         rect.Top - rect.Height,
                         rect.Width * 3,
                         rect.Height * 3);
-                    frame.Draw(bigRect, new Bgr(255, 0, 255), 2);
+                    frame.Draw(bigRect, new Bgr(255, 0, 255), 4);
                 }
 
                 foreach (Rectangle rect in ratRect)
                 {
-                    frame.Draw(rect, new Bgr(0, 255, 255), 2);
+                    frame.Draw(rect, new Bgr(0, 255, 255), 4);
+                }
+
+                if (ratRect.Count > 0)
+                {
+                    
+                    double spendTime = (currentFrame - lastFrame) / FPS;
+                    
+                    int maxArea = int.MinValue;
+                    Rectangle currentLocation = Rectangle.Empty;
+                    foreach (Rectangle rect in ratRect)
+                    {
+                        int tempArea = rect.Width * rect.Height;
+                        if (tempArea > maxArea)
+                        {
+                            maxArea = tempArea;
+                            currentLocation = rect;
+                        }
+                    }
+                    if (walkDir == DIRECTION.UNKNOWN)
+                    {
+                        int center = (currentLocation.Left + currentLocation.Right) / 2;
+                        if (center < frame.Width / 2)
+                        {
+                            walkDir = DIRECTION.LEFT2RIGHT;
+                        }
+                        else
+                        {
+                            walkDir = DIRECTION.RIGHT2LEFT;
+                        }
+                    }
+                    double speed = 0;
+                    if (walkDir == DIRECTION.LEFT2RIGHT)
+                    {
+                        speed = ((currentLocation.Right - lastLocation) / spendTime);
+                        lastLocation = currentLocation.Right;
+                    }
+                    else
+                    {
+                        speed = ((currentLocation.Left - lastLocation) / spendTime);
+                        lastLocation = currentLocation.Left;
+                    }
+                    speed = Math.Round(speed, 2);
+                    txSpeed.Text = "Instant Velocity: " + speed.ToString() + " pixel/s";
+                    
+                    lastFrame = currentFrame;
                 }
 
                 pictureBox1.Image = frame.ToBitmap();
@@ -195,9 +245,12 @@ namespace VideoFileReaderTest
                 _capture.SetCaptureProperty(CAP_PROP.CV_CAP_PROP_POS_FRAMES, 0);
                 frame = _capture.QueryFrame();
                 pictureBox1.Image = frame.ToBitmap();
+                pictureBox2.Image = null;
+                pictureBox3.Image = null;
                 currentFrame = 0;
                 trackBar3.Value = 0;
                 mTimer.Stop();
+                txSpeed.Text = "Instant Velocity:";
             }
         }
 
@@ -210,64 +263,53 @@ namespace VideoFileReaderTest
             OpenFileDialog ofd = new OpenFileDialog();
             if (ofd.ShowDialog() == DialogResult.OK)
             {
+                stopTimer();
                 _capture = new Capture(ofd.FileName);
-
-                bgImage = getBackgroundImage(
-                    _capture,
-                    para1,
-                    (int)para2);
-
+                Image<Bgr, byte> frame = _capture.QueryFrame();
+                pictureBox1.Image = frame.ToBitmap();
+                pictureBox2.Image = null;
+                pictureBox3.Image = null;
+                _capture.SetCaptureProperty(CAP_PROP.CV_CAP_PROP_POS_FRAMES, 0);
+                bgImage = getBackgroundImage(_capture);
+                _capture.SetCaptureProperty(CAP_PROP.CV_CAP_PROP_POS_FRAMES, 0);
                 totalFrames = _capture.GetCaptureProperty(CAP_PROP.CV_CAP_PROP_FRAME_COUNT);
                 FPS = _capture.GetCaptureProperty(CAP_PROP.CV_CAP_PROP_FPS);
                 currentFrame = _capture.GetCaptureProperty(CAP_PROP.CV_CAP_PROP_POS_FRAMES);
                 Console.WriteLine("fn: " + currentFrame);
                 trackBar3.Maximum = (int)totalFrames - 1;
                 trackBar3.Minimum = 0;
+                trackBar3.Value = 0;
 
+                txSpeed.Text = "Instant velocity:";
+                walkDir = DIRECTION.UNKNOWN;
+
+                button2.Enabled = true;
+                button3.Enabled = true;
+                trackBar3.Enabled = true;
             }
+        }
+
+        private void stopTimer()
+        {
+            if (mTimer == null)
+                return;
+            if (!mTimer.Enabled)
+                return;
+
+            mTimer.Stop();
         }
 
         private void onParam1_Scroll(object sender, EventArgs e)
         {
             try
             {
-                (new Thread(delegate() { changeBackgroundImage(sender); })).Start();
+                para1 = ((TrackBar)sender).Value;
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
 
-        }
-
-        private delegate void changeBackgroundImageCallback(object sender);
-        private void changeBackgroundImage(object sender)
-        {
-            if (this.InvokeRequired)
-            {
-                changeBackgroundImageCallback cbic = new changeBackgroundImageCallback(changeBackgroundImage);
-                this.Invoke(cbic, sender);
-            }
-            else
-            {
-                bool isAlive = false;
-                if (mTimer != null && mTimer.Enabled)
-                {
-                    isAlive = true;
-                    mTimer.Stop();
-                }
-                para1 = ((TrackBar)sender).Value;
-                _capture.SetCaptureProperty(CAP_PROP.CV_CAP_PROP_POS_FRAMES, 0);
-                bgImage = getBackgroundImage(
-                    _capture,
-                    para1,
-                    (int)para2);
-                _capture.SetCaptureProperty(CAP_PROP.CV_CAP_PROP_POS_FRAMES, currentFrame);
-                if (isAlive)
-                {
-                    mTimer.Start();
-                }
-            }
         }
 
         private void onParam2_Scroll(object sender, EventArgs e)
@@ -288,7 +330,7 @@ namespace VideoFileReaderTest
             _capture.SetCaptureProperty(CAP_PROP.CV_CAP_PROP_POS_FRAMES, currentFrame);
             mTimer = new FTimer();
 
-            mTimer.Interval = (int)(1000 / FPS);
+            mTimer.Interval = (int)(1000 / FPS / 5);
             mTimer.Tick += timer_Tick;
             mTimer.Start();
         }
