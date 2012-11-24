@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // 組件的一般資訊是由下列的屬性集控制。
 // 變更這些屬性的值即可修改組件的相關
 // 資訊。
-[assembly: AssemblyTitle("VideoFileReaderTest")]
+[assembly: AssemblyTitle("Rat Walk Analysis")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("NEFUser")]
-[assembly: AssemblyProduct("VideoFileReaderTest")]
-[assembly: AssemblyCopyright("Copyright © NEFUser 2012")]
+[assembly: AssemblyCompany("Herman Liang")]
+[assembly: AssemblyProduct("Rat Walk Analysis")]
+[assembly: AssemblyCopyright("Copyright © Herman Liang 2012")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
