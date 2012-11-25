@@ -40,9 +40,9 @@
             this.pictureBox3 = new System.Windows.Forms.PictureBox();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.label2 = new System.Windows.Forms.Label();
             this.panel2 = new System.Windows.Forms.Panel();
             this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.txSpeed = new System.Windows.Forms.Label();
@@ -86,7 +86,7 @@
             this.trackBar1.Maximum = 128;
             this.trackBar1.Minimum = 1;
             this.trackBar1.Name = "trackBar1";
-            this.trackBar1.Size = new System.Drawing.Size(553, 45);
+            this.trackBar1.Size = new System.Drawing.Size(553, 42);
             this.trackBar1.TabIndex = 2;
             this.trackBar1.Value = 57;
             this.trackBar1.Scroll += new System.EventHandler(this.onParam1_Scroll);
@@ -99,7 +99,7 @@
             this.trackBar2.Maximum = 21;
             this.trackBar2.Minimum = 1;
             this.trackBar2.Name = "trackBar2";
-            this.trackBar2.Size = new System.Drawing.Size(553, 45);
+            this.trackBar2.Size = new System.Drawing.Size(553, 42);
             this.trackBar2.TabIndex = 3;
             this.trackBar2.Value = 3;
             this.trackBar2.Scroll += new System.EventHandler(this.onParam2_Scroll);
@@ -111,7 +111,7 @@
             this.trackBar3.Enabled = false;
             this.trackBar3.Location = new System.Drawing.Point(173, 546);
             this.trackBar3.Name = "trackBar3";
-            this.trackBar3.Size = new System.Drawing.Size(501, 45);
+            this.trackBar3.Size = new System.Drawing.Size(501, 42);
             this.trackBar3.TabIndex = 4;
             this.trackBar3.Scroll += new System.EventHandler(this.onSeekbar_Scroll);
             // 
@@ -191,6 +191,16 @@
             this.panel1.Size = new System.Drawing.Size(325, 244);
             this.panel1.TabIndex = 2;
             // 
+            // label2
+            // 
+            this.label2.Anchor = System.Windows.Forms.AnchorStyles.Top;
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(124, 9);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(94, 12);
+            this.label2.TabIndex = 9;
+            this.label2.Text = "Red Mark Contour";
+            // 
             // panel2
             // 
             this.panel2.Controls.Add(this.label1);
@@ -210,16 +220,6 @@
             this.label1.Size = new System.Drawing.Size(63, 12);
             this.label1.TabIndex = 8;
             this.label1.Text = "Rat Contour";
-            // 
-            // label2
-            // 
-            this.label2.Anchor = System.Windows.Forms.AnchorStyles.Top;
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(124, 9);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(94, 12);
-            this.label2.TabIndex = 9;
-            this.label2.Text = "Red Mark Contour";
             // 
             // label3
             // 
@@ -244,9 +244,11 @@
             // txSpeed
             // 
             this.txSpeed.AutoSize = true;
-            this.txSpeed.Location = new System.Drawing.Point(139, 17);
+            this.txSpeed.Font = new System.Drawing.Font("Times New Roman", 14F);
+            this.txSpeed.ForeColor = System.Drawing.Color.Red;
+            this.txSpeed.Location = new System.Drawing.Point(136, 13);
             this.txSpeed.Name = "txSpeed";
-            this.txSpeed.Size = new System.Drawing.Size(79, 12);
+            this.txSpeed.Size = new System.Drawing.Size(127, 21);
             this.txSpeed.TabIndex = 12;
             this.txSpeed.Text = "Instant velocity:";
             // 
@@ -267,7 +269,7 @@
             this.Controls.Add(this.trackBar3);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Form1";
-            this.Text = "Form1";
+            this.Text = "Rat Walk Analysis (v1.0 beta)";
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar2)).EndInit();

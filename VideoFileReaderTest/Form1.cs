@@ -225,6 +225,10 @@ namespace VideoFileReaderTest
                     if (walkDir == DIRECTION.LEFT2RIGHT)
                     {
                         speed = ((currentLocation.Right - lastLocation) / spendTime);
+                        if (speed < 0)
+                        {
+                            Console.WriteLine("<0");
+                        }
                         lastLocation = currentLocation.Right;
                     }
                     else
@@ -341,6 +345,7 @@ namespace VideoFileReaderTest
         }
 
         #endregion
+
 
     }
 }

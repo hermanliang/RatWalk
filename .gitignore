@@ -2,6 +2,7 @@
 bin
 obj
 .DS_Store
+dist
 
 # mstest test results
 TestResults
